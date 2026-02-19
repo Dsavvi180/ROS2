@@ -366,11 +366,11 @@ class PFLocaliser(PFLocaliserBase):
         on the particle cloud (self.particlecloud).
         Naive implementation: Returns the particle with the highest weight.
         """
-        # 1. Safety check: If no particles exist, return a default Pose to prevent crashing
+     
         if not self.particleWeights:
             return Pose()
 
-        # 2. Iterate through the dictionary to find the highest weight
+      
         best_pose = None
         max_weight = -1.0
 
@@ -378,9 +378,7 @@ class PFLocaliser(PFLocaliserBase):
             if weight > max_weight:
                 max_weight = weight
                 best_pose = particle
-
-        # 3. Fallback: If for some reason best_pose is still None (e.g., all weights -1),
-        # return the first available particle
+                
         if best_pose is None:
             return list(self.particleWeights.values())[0][1]
 
