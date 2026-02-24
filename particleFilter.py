@@ -339,28 +339,24 @@ class PFLocaliser(PFLocaliserBase):
         return pose
 
     def estimate_pose(self):
-        """
-        This should calculate and return an updated robot pose estimate based
-        on the particle cloud (self.particlecloud).
-        
-        Naive implementation: Returns the particle with the highest weight.
-        """
-        # 1. Safety check: If no particles exist, return a default Pose to prevent crashing
-        if not self.particleWeights:
-            return Pose()
-
-        # 2. Iterate through the dictionary to find the highest weight
-        best_pose = None
-        max_weight = -1.0
-
-        for id_val, (weight, particle) in self.particleWeights.items():
-            if weight > max_weight:
-                max_weight = weight
-                best_pose = particle
-        
-        # 3. Fallback: If for some reason best_pose is still None (e.g., all weights -1), 
-        # return the first available particle
-        if best_pose is None:
-            return list(self.particleWeights.values())[0][1]
-
-        return best_pose
+            """
+            This should calculate and return an updated robot pose estimate based
+            on the particle cloud (self.particlecloud).
+            
+            Implementation: Uses K-means++ to cluster particles and returns 
+            the centroid with the highest weight.
+            """
+            # 1. Safety check: Ensure we have particles and a valid initial centroid
+            if not self.particleWeights or self.maxWeightParticle is None:
+                # Fallback to the first available particle if K-means cannot run
+                if self.particleWeights:
+                    return list(self.particleWeights.values())[0][1]
+                return Pose()
+    
+            # 2. Run K-means++ using the highest weighted particle as the initial centroid
+            centroids = self.KmeansPlusPlus(self.particlecloud, self.maxWeightParticle, K=self.NUM_CLUSTERS)
+            
+            # 3. Select the centroid with the highest weight
+            best_centroid = centroids[np.argmax([self.get_weight(particle) for particle in centroids])]
+            
+            return best_centroid
